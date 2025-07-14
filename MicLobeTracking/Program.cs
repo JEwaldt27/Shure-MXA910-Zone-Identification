@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 class Program
@@ -29,43 +30,22 @@ class Program
                     if (bytesRead == 0) break;
 
                     string reply = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    Console.Write(reply);
-                    if (reply.Contains("REP 1 AUTOMIX_GATE_OUT_EXT_SIG ON"))
+                    //Console.Write(reply);
+                    if (Regex.Match(reply, @"REP (\d) AUTOMIX_GATE_OUT_EXT_SIG ON") is { Success: true } m)
                     {
-                        Console.WriteLine("\nOne Is Active");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"\n{int.Parse(m.Groups[1].Value)} in use.");
+                        Console.ResetColor();
                     }
-                    else if (reply.Contains("REP 2 AUTOMIX_GATE_OUT_EXT_SIG ON"))
+                    else if (Regex.Match(reply, @"REP (\d) AUTOMIX_GATE_OUT_EXT_SIG OFF") is { Success: true } n)
                     {
-                        Console.WriteLine("\nTwo Is Active");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"\n{int.Parse(n.Groups[1].Value)} not in use.");
+                        Console.ResetColor();
                     }
-                    else if (reply.Contains("REP 3 AUTOMIX_GATE_OUT_EXT_SIG ON"))
-                    {
-                        Console.WriteLine("\nThree Is Active");
-                    }
-                    else if (reply.Contains("REP 4 AUTOMIX_GATE_OUT_EXT_SIG ON"))
-                    {
-                        Console.WriteLine("\nFour Is Active");
-                    }
-                    else if (reply.Contains("REP 5 AUTOMIX_GATE_OUT_EXT_SIG ON"))
-                    {
-                        Console.WriteLine("\nFive Is Active");
-                    }
-                    else if (reply.Contains("REP 6 AUTOMIX_GATE_OUT_EXT_SIG ON"))
-                    {
-                        Console.WriteLine("\nSix Is Active");
-                    }
-                    else if (reply.Contains("REP 7 AUTOMIX_GATE_OUT_EXT_SIG ON"))
-                    {
-                        Console.WriteLine("\nSeven Is Active");
-                    }
-                    else if (reply.Contains("REP 8 AUTOMIX_GATE_OUT_EXT_SIG ON"))
-                    {
-                        Console.WriteLine("\nEight Is Active");
-                    }
-                    else 
-                    { 
-                        Console.WriteLine("\nRandom Response Received");
-                    }
+
+                    //else
+                    //    Console.WriteLine("\nRandom Response Received");
 
                 }
             }
