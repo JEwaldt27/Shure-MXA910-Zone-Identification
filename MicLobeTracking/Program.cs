@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 class Program
 {
@@ -16,6 +17,13 @@ class Program
         double totalActiveSeconds = 0;
         int activations = 0;
         DateTime? activeStart = null;
+
+        HashSet<int> activeLobes = new HashSet<int>();
+        HashSet<int> nonActiveLobes = new HashSet<int>();
+
+        
+        for (int i = 1; i <= 8; i++)
+            nonActiveLobes.Add(i);
 
         using (TcpClient client = new TcpClient())
         {
@@ -41,12 +49,18 @@ class Program
 
                         activeLobe = int.Parse(m.Groups[1].Value);
 
+                        // Update sets
+                        activeLobes.Add(activeLobe);
+                        nonActiveLobes.Remove(activeLobe);
+
                         Console.Clear();
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"\n{activeLobe} in use.");
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"\n{nonActiveLobe} deactivated.");
+                        Console.WriteLine($"Lobe {activeLobe} ACTIVATED.");
                         Console.ResetColor();
+
+                        Console.WriteLine($"\nActive Lobes: {string.Join(", ", activeLobes)}");
+                        Console.WriteLine($"Non-Active Lobes: {string.Join(", ", nonActiveLobes)}");
+
                         Console.WriteLine($"\nAverage active time: {(activations > 0 ? totalActiveSeconds / activations : 0):F2} seconds");
                     }
                     else if (Regex.Match(reply, @"REP (\d) AUTOMIX_GATE_OUT_EXT_SIG OFF") is { Success: true } n)
@@ -61,12 +75,18 @@ class Program
 
                         nonActiveLobe = int.Parse(n.Groups[1].Value);
 
+                        // Update sets
+                        nonActiveLobes.Add(nonActiveLobe);
+                        activeLobes.Remove(nonActiveLobe);
+
                         Console.Clear();
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"\n{activeLobe} in use.");
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"\n{nonActiveLobe} deactivated.");
+                        Console.WriteLine($"Lobe {nonActiveLobe} DEACTIVATED.");
                         Console.ResetColor();
+
+                        Console.WriteLine($"\nActive Lobes: {string.Join(", ", activeLobes)}");
+                        Console.WriteLine($"Non-Active Lobes: {string.Join(", ", nonActiveLobes)}");
+
                         Console.WriteLine($"\nAverage active time: {(activations > 0 ? totalActiveSeconds / activations : 0):F2} seconds");
                     }
                 }
